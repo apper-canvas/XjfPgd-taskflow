@@ -7,7 +7,6 @@ import { TaskProvider } from './context/TaskContext';
 import { ProjectProvider } from './context/ProjectContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
     <AuthProvider>
       <TaskProvider>
         <ProjectProvider>
@@ -15,5 +14,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </ProjectProvider>
       </TaskProvider>
     </AuthProvider>
-  </React.StrictMode>,
 );
