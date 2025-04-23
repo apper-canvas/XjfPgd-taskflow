@@ -1,65 +1,46 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
-import Home from './pages/Home';
-import NotFound from './pages/NotFound';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import LoginPage from './components/auth/LoginPage';
+
+// Protected route component that redirects to login if not authenticated
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  
+  // Show loading indicator while checking authentication
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Render the children if authenticated
+  return children;
+}
 
 function App() {
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark' || 
-      (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-10 glass border-b border-surface-200 dark:border-surface-700">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <motion.div 
-              initial={{ rotate: -10 }}
-              animate={{ rotate: 0 }}
-              className="text-primary text-2xl font-bold"
-            >
-              TaskFlow
-            </motion.div>
-          </div>
-          
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </motion.button>
-        </div>
-      </header>
-      
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      
-      <footer className="py-4 border-t border-surface-200 dark:border-surface-800">
-        <div className="container mx-auto px-4 text-center text-sm text-surface-500">
-          &copy; {new Date().getFullYear()} TaskFlow. All rights reserved.
-        </div>
-      </footer>
-    </div>
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <div className="p-4">Dashboard (protected route)</div>
+          </ProtectedRoute>
+        } />
+        
+        {/* Redirect root to login or dashboard based on authentication */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        {/* 404 route */}
+        <Route path="*" element={<div className="p-4">Page not found</div>} />
+      </Routes>
+    </Router>
   );
 }
 
